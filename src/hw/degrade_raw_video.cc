@@ -10,13 +10,14 @@
 
 int main(int argc, char **argv)
 {
-    if(argc != 3){
-        std::cout << "usage: " << argv[0] << " <input.raw> <ouptut.raw>\n";
+    if(argc != 4){
+        std::cout << "usage: " << argv[0] << " <quantizer (1-64; lower is better)> <input.raw> <ouptut.raw>\n";
         return 0;
     }
 
-    const std::string input_filename = argv[1];
-    const std::string output_filename = argv[2];
+    const int quantizer = std::stoi(argv[1]);
+    const std::string input_filename = argv[2];
+    const std::string output_filename = argv[3];
 
     std::cout << "input: " << input_filename << "\n";
     std::cout << "ouput: " << output_filename << "\n";    
@@ -51,7 +52,7 @@ int main(int argc, char **argv)
     uint8_t *yuv_input[] = {y_buffer1.get(), u_buffer1.get(), v_buffer1.get()};
     uint8_t *yuv_output[] = {y_buffer2.get(), u_buffer2.get(), v_buffer2.get()};
 
-    H264_degrader degrader(width, height, 24);
+    H264_degrader degrader(width, height, quantizer);
 
     while(!infile.eof()){
         infile.read((char*)input_buffer.get(), frame_size);
