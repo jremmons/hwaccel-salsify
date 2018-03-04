@@ -16,7 +16,7 @@ public:
     AVFrame *decoder_frame;
     std::mutex degrader_mutex;
     
-    H264_degrader(size_t _width, size_t _height, size_t _bitrate, size_t quantization);
+    H264_degrader(size_t _width, size_t _height, size_t quantization);
     ~H264_degrader();
 
     void bgra2yuv422p(uint8_t* input, AVFrame* outputFrame, size_t width, size_t height);
@@ -30,7 +30,6 @@ private:
 
     const size_t width;
     const size_t height;
-    const size_t bitrate;
     const size_t quantization;
     
     std::unique_ptr<uint8_t[]> buffer;

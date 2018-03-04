@@ -34,10 +34,9 @@ void H264_degrader::yuv422p2bgra(AVFrame* inputFrame, uint8_t* output, size_t wi
   sws_scale(yuv422p2bgra_context, inData, inLinesize, 0, height, outputArray, outLinesize);
 }
 
-H264_degrader::H264_degrader(size_t _width, size_t _height, size_t _bitrate, size_t quantization) :
+H264_degrader::H264_degrader(size_t _width, size_t _height, size_t quantization) :
     width(_width),
     height(_height),
-    bitrate(_bitrate),
     frame_count(0),
     quantization(quantization)
 {
@@ -74,8 +73,8 @@ H264_degrader::H264_degrader(size_t _width, size_t _height, size_t _bitrate, siz
     encoder_context->width = width;
     encoder_context->height = height;
 
-    encoder_context->bit_rate = bitrate;
-    encoder_context->bit_rate_tolerance = 1000000;
+    encoder_context->bit_rate = 1<<10;
+    encoder_context->bit_rate_tolerance = 0;
 
     encoder_context->time_base = (AVRational){1, 20};
     encoder_context->framerate = (AVRational){60, 1};
@@ -248,7 +247,7 @@ void H264_degrader::degrade(AVFrame *inputFrame, AVFrame *outputFrame){
     av_packet_unref(encoder_packet);
     auto encode2 = std::chrono::high_resolution_clock::now();
     auto encodetime = std::chrono::duration_cast<std::chrono::duration<double>>(encode2 - encode1);
-    std::cout << "encodetime " << encodetime.count() << "\n";
+    //std::cout << "encodetime " << encodetime.count() << "\n";
 
 
     // decode frame
@@ -275,7 +274,7 @@ void H264_degrader::degrade(AVFrame *inputFrame, AVFrame *outputFrame){
         data_size -= ret1;
         auto parse2 = std::chrono::high_resolution_clock::now();
         auto parsetime = std::chrono::duration_cast<std::chrono::duration<double>>(parse2 - parse1);
-        std::cout << "parsetime " << parsetime.count() << "\n";
+        //std::cout << "parsetime " << parsetime.count() << "\n";
 
         auto decode1 = std::chrono::high_resolution_clock::now();
         if(decoder_packet->size > 0){
@@ -297,7 +296,7 @@ void H264_degrader::degrade(AVFrame *inputFrame, AVFrame *outputFrame){
         output_set = true;
         auto decode2 = std::chrono::high_resolution_clock::now();
         auto decodetime = std::chrono::duration_cast<std::chrono::duration<double>>(decode2 - decode1);
-        std::cout << "decodetime " << decodetime.count() << "\n";
+        //std::cout << "decodetime " << decodetime.count() << "\n";
     }
     //av_packet_unref(decoder_packet);
 
