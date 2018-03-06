@@ -1,4 +1,6 @@
 #pragma once
+//#ifndef __H264_DEGRADER_HH__
+//#define __H264_DEGRADER_HH__
 
 extern "C" {
 #include <libswscale/swscale.h>
@@ -8,28 +10,27 @@ extern "C" {
 
 #include <mutex>
 
-class H264_encoder {
+class H264_encoder{
 public:    
     H264_encoder(size_t _width, size_t _height, size_t quantization);
     ~H264_encoder();
-    
-    size_t encode(std::shared_ptr<uint8_t[]> yuv420_raw_input, std::shared_ptr<uint8_t[]> yuv420_compressed_output);
-    
+
+    size_t encode(uint8_t *input, uint8_t *output);
+
 private:
     const AVCodecID codec_id = AV_CODEC_ID_H264;
     const AVPixelFormat pix_fmt = AV_PIX_FMT_YUV420P;
 
     const size_t width;
     const size_t height;
-    const size_t quantization;
+    const size_t quantization;    
     size_t frame_count;
-    
-    std::unique_ptr<uint8_t[]> buffer;
 
     AVCodec *encoder_codec;
     AVCodecContext *encoder_context;
-    AVFrame *encoder_frame;
     AVPacket *encoder_packet;
-    
+    AVFrame *encoder_frame;
+
 };
 
+//#endif

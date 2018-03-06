@@ -56,10 +56,10 @@ int main(int argc, char **argv)
         infile.read((char*)buffer1.get(), frame_size);
 
         // encode
-        size_t compressed_frame_size = encoder.encode(buffer1, buffer2);
+        size_t compressed_frame_size = encoder.encode(buffer1.get(), buffer2.get());
 
         // decode
-        decoder.decode(buffer2, compressed_frame_size, buffer3);
+        decoder.decode(buffer2.get(), compressed_frame_size, buffer3.get());
 
         // write out raw video
         outfile.write((char*)buffer3.get(), frame_size);

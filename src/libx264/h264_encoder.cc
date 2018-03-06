@@ -9,6 +9,7 @@
 
 extern "C" {
 #include <stdlib.h>
+#include <libswscale/swscale.h>
 #include "libavcodec/avcodec.h"
 #include "libavutil/opt.h"
 #include "libavutil/frame.h"
@@ -17,19 +18,13 @@ extern "C" {
 #include "libavutil/mathematics.h"
 }
 
+
 H264_encoder::H264_encoder(size_t _width, size_t _height, size_t quantization) :
     width(_width),
     height(_height),
-    quantization(quantization),
     frame_count(0),
-    buffer(NULL),
-    encoder_codec(NULL),
-    encoder_context(NULL),
-    encoder_frame(NULL),
-    encoder_packet(NULL)
+    quantization(quantization)
 {
-    buffer = std::move(std::unique_ptr<uint8_t[]>((uint8_t*)aligned_alloc(32,1<<23)));
-
     avcodec_register_all();
 
     encoder_codec = avcodec_find_encoder(codec_id);
@@ -66,13 +61,13 @@ H264_encoder::H264_encoder(size_t _width, size_t _height, size_t quantization) :
         std::cout << "could not open encoder" << "\n";;
         throw;
     }
-    
+
     encoder_frame = av_frame_alloc();
     if(encoder_frame == NULL) {
         std::cout << "AVFrame not allocated: encoder" << "\n";
         throw;
     }
-
+    
     encoder_frame->width = width;
     encoder_frame->height = height;
     encoder_frame->format = pix_fmt;
@@ -88,43 +83,37 @@ H264_encoder::H264_encoder(size_t _width, size_t _height, size_t quantization) :
         std::cout << "AVPacket not allocated: encoder" << "\n";
         throw;
     }
-
 }
+
 
 H264_encoder::~H264_encoder(){
     avcodec_free_context(&encoder_context);
     av_frame_free(&encoder_frame);
     av_packet_free(&encoder_packet);
-
 }
 
-size_t H264_encoder::encode(const std::shared_ptr<uint8_t[]> yuv420_raw_input, std::shared_ptr<uint8_t[]> yuv420_compressed_output) {
 
-    
-    if(av_frame_make_writable(encoder_frame) < 0){
+size_t H264_encoder::encode(uint8_t *input, uint8_t *output){
+    bool output_set = false;
+
+    AVFrame *inputFrame = encoder_frame;
+    if(av_frame_make_writable(inputFrame) < 0){
         std::cout << "Could not make the frame writable" << "\n";
         throw;
     }
 
-    assert(encoder_frame->linesize[0] == width);
-    assert(encoder_frame->linesize[1] == width / 2);
-    assert(encoder_frame->linesize[2] == width / 2);
-    
-    std::memcpy(encoder_frame->data[0], yuv420_raw_input.get(), width*height);
-    std::memcpy(encoder_frame->data[1], yuv420_raw_input.get() + width*height, width*height / 4);
-    std::memcpy(encoder_frame->data[2], yuv420_raw_input.get() + width*height + width*height / 4, width*height / 4);
-    
+    std::memcpy(inputFrame->data[0], input, height*width);
+    std::memcpy(inputFrame->data[1], input + height*width, height*width/4);
+    std::memcpy(inputFrame->data[2], input + height*width + height*width/4, height*width/4);
+
     // encode frame
     auto encode1 = std::chrono::high_resolution_clock::now();
-
-    encoder_frame->pts = frame_count;
-    frame_count++;
-    int ret = avcodec_send_frame(encoder_context, encoder_frame);
+    inputFrame->pts = frame_count;
+    int ret = avcodec_send_frame(encoder_context, inputFrame);
     if (ret < 0) {
         std::cout << "error sending a frame for encoding" << "\n";
         throw;
     }
-
     int buffer_size = 0;
     int count = 0;
     while (ret >= 0) {
@@ -144,10 +133,10 @@ size_t H264_encoder::encode(const std::shared_ptr<uint8_t[]> yuv420_raw_input, s
 
         buffer_size = encoder_packet->size;
         assert(encoder_packet->size + AV_INPUT_BUFFER_PADDING_SIZE >= buffer_size);
-        std::memcpy(buffer.get(), encoder_packet->data, encoder_packet->size);
+        std::memcpy(output, encoder_packet->data, encoder_packet->size);
         
         if(count > 0){
-            std::cout << "error! multiple parsing passes!" << "\n";
+            std::cout << "error! multiple parsing passing!" << "\n";
             throw;
         }
         count += 1;
@@ -157,13 +146,7 @@ size_t H264_encoder::encode(const std::shared_ptr<uint8_t[]> yuv420_raw_input, s
     auto encodetime = std::chrono::duration_cast<std::chrono::duration<double>>(encode2 - encode1);
     //std::cout << "encodetime " << encodetime.count() << "\n";
 
-    uint8_t *data = buffer.get();
-    size_t data_size = buffer_size;
-
-    std::cout << "encoded_frame_size: " << buffer_size << "\n";    
-    std::memcpy(yuv420_raw_input.get(), data, data_size);
+    // std::memcpy(output, buffer.get(), buffer_size);
+    return (size_t)buffer_size;
     
-    return data_size;
-
 }
-

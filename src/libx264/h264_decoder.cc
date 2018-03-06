@@ -18,16 +18,13 @@ extern "C" {
 #include "libavutil/mathematics.h"
 }
 
+
 H264_decoder::H264_decoder(size_t _width, size_t _height) :
     width(_width),
     height(_height),
-    frame_count(0),
-    decoder_codec(NULL),
-    decoder_context(NULL),
-    decoder_parser(NULL),
-    decoder_frame(NULL),
-    decoder_packet(NULL)
+    frame_count(0)    
 {
+
     avcodec_register_all();
 
     decoder_codec = avcodec_find_decoder(codec_id);
@@ -46,18 +43,6 @@ H264_decoder::H264_decoder(size_t _width, size_t _height) :
     decoder_context->pix_fmt = pix_fmt;
     decoder_context->width = width;
     decoder_context->height = height;
-
-    decoder_context->bit_rate = 1<<10;
-    decoder_context->bit_rate_tolerance = 0;
-
-    decoder_context->time_base = (AVRational){1, 20};
-    decoder_context->framerate = (AVRational){60, 1};
-    decoder_context->gop_size = 0;
-    decoder_context->max_b_frames = 0;
-    decoder_context->qmin = 0;
-    decoder_context->qmax = 0;
-    decoder_context->qcompress = 0.5;
-    av_opt_set(decoder_context->priv_data, "tune", "zerolatency", 0); // forces no frame buffer delay (https://stackoverflow.com/questions/10155099/c-ffmpeg-h264-creating-zero-delay-stream)
 
     if(avcodec_open2(decoder_context, decoder_codec, NULL) < 0){
         std::cout << "could not open decoder" << "\n";;
@@ -91,7 +76,6 @@ H264_decoder::H264_decoder(size_t _width, size_t _height) :
         std::cout << "AVPacket not allocated: decoder" << "\n";
         throw;
     }
-
 }
 
 
@@ -100,17 +84,19 @@ H264_decoder::~H264_decoder(){
     avcodec_free_context(&decoder_context);
     av_frame_free(&decoder_frame);
     av_packet_free(&decoder_packet);
+
 }
 
 
-void H264_decoder::decode(const std::shared_ptr<uint8_t[]> yuv420_compressed_input, const size_t yuv420_compressed_input_len, std::shared_ptr<uint8_t[]> yuv420_raw_output){
-
-    uint8_t *data = yuv420_compressed_input.get();
-    int data_size = yuv420_compressed_input_len;
+void H264_decoder::decode(uint8_t *input, size_t len, uint8_t *output){
     bool output_set = false;
 
-    std::cout << "compressed frame size: " << yuv420_compressed_input_len << "\n";
-    
+    AVFrame *outputFrame = decoder_frame;
+    std::cout << "encoded_frame_size: " << len << "\n";
+
+    // decode frame
+    uint8_t *data = input;
+    int data_size = len;
     while(data_size > 0){
         auto parse1 = std::chrono::high_resolution_clock::now();
         size_t ret1 = av_parser_parse2(decoder_parser,
@@ -123,8 +109,6 @@ void H264_decoder::decode(const std::shared_ptr<uint8_t[]> yuv420_compressed_inp
                                        AV_NOPTS_VALUE, 
                                        0);
         
-        std::cout << "output_size " << decoder_packet->size << "\n";    
-
         if(ret1 < 0){
             std::cout << "error while parsing the buffer: decoding" << "\n";
             throw;
@@ -132,8 +116,6 @@ void H264_decoder::decode(const std::shared_ptr<uint8_t[]> yuv420_compressed_inp
 
         data += ret1;
         data_size -= ret1;
-
-        std::cout << "consumed bytes: " << ret1 << "\n";
         auto parse2 = std::chrono::high_resolution_clock::now();
         auto parsetime = std::chrono::duration_cast<std::chrono::duration<double>>(parse2 - parse1);
         //std::cout << "parsetime " << parsetime.count() << "\n";
@@ -145,7 +127,7 @@ void H264_decoder::decode(const std::shared_ptr<uint8_t[]> yuv420_compressed_inp
                 throw;                
             }
 
-            size_t ret2 = avcodec_receive_frame(decoder_context, decoder_frame);
+            size_t ret2 = avcodec_receive_frame(decoder_context, outputFrame);
             if (ret2 == AVERROR(EAGAIN) || ret2 == AVERROR_EOF){
                 continue;
             }
@@ -153,6 +135,7 @@ void H264_decoder::decode(const std::shared_ptr<uint8_t[]> yuv420_compressed_inp
                 std::cout << "error during decoding: receive frame" << "\n";
                 throw;
             }
+            
             output_set = true;
         }
         auto decode2 = std::chrono::high_resolution_clock::now();
@@ -161,18 +144,16 @@ void H264_decoder::decode(const std::shared_ptr<uint8_t[]> yuv420_compressed_inp
     }
     //av_packet_unref(decoder_packet);
 
-    std::cout << "output_set " << output_set << "\n";
     if(!output_set){
-        std::cout << "output was not set\n";
-        std::memset(yuv420_raw_output.get(), 255, width*height);
-        std::memset(yuv420_raw_output.get() + width*height, 128, width*height/4);
-        std::memset(yuv420_raw_output.get() + width*height + width*height/2, 128, width*height/4);
+        std::memset(outputFrame->data[0], 255, width*height);
+        std::memset(outputFrame->data[1], 128, width*height/4);
+        std::memset(outputFrame->data[2], 128, width*height/4);
     }
-    else{
-        std::memcpy(yuv420_raw_output.get(), decoder_frame->data[0], width*height);
-        std::memcpy(yuv420_raw_output.get() + width*height, decoder_frame->data[1], width*height/4);
-        std::memcpy(yuv420_raw_output.get() + width*height + width*height/4, decoder_frame->data[2], width*height/4);
-    }
-    
+
+    std::memcpy(output, outputFrame->data[0], height*width);
+    std::memcpy(output + width*height, outputFrame->data[1], height*width/4);
+    std::memcpy(output + width*height + width*height/4, outputFrame->data[2], height*width/4);
+
+    frame_count += 1;
 }
 

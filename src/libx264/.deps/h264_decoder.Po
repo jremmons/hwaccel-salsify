@@ -132,7 +132,8 @@ h264_decoder.o: h264_decoder.cc /usr/include/stdc-predef.h \
  /usr/include/c++/7/ratio /usr/include/c++/7/limits \
  /usr/include/c++/7/ctime /usr/include/c++/7/bits/parse_numbers.h \
  /usr/include/c++/7/bits/std_mutex.h h264_decoder.hh \
- /usr/local/include/libswscale/swscale.h \
+ /usr/local/include/libavcodec/avcodec.h \
+ /usr/local/include/libavutil/samplefmt.h \
  /usr/local/include/libavutil/avutil.h \
  /usr/local/include/libavutil/common.h /usr/include/inttypes.h \
  /usr/lib/gcc/x86_64-linux-gnu/7/include-fixed/limits.h \
@@ -158,25 +159,24 @@ h264_decoder.o: h264_decoder.cc /usr/include/stdc-predef.h \
  /usr/local/include/libavutil/version.h \
  /usr/local/include/libavutil/avconfig.h \
  /usr/local/include/libavutil/mem.h /usr/local/include/libavutil/error.h \
- /usr/local/include/libavutil/avutil.h \
  /usr/local/include/libavutil/rational.h \
  /usr/local/include/libavutil/mathematics.h \
  /usr/local/include/libavutil/intfloat.h \
  /usr/local/include/libavutil/log.h /usr/local/include/libavutil/pixfmt.h \
- /usr/local/include/libavutil/log.h /usr/local/include/libavutil/pixfmt.h \
- /usr/local/include/libswscale/version.h \
- /usr/local/include/libavutil/version.h \
- /usr/local/include/libavcodec/avcodec.h \
- /usr/local/include/libavutil/samplefmt.h \
  /usr/local/include/libavutil/attributes.h \
+ /usr/local/include/libavutil/avutil.h \
  /usr/local/include/libavutil/buffer.h /usr/local/include/libavutil/cpu.h \
  /usr/local/include/libavutil/channel_layout.h \
  /usr/local/include/libavutil/dict.h /usr/local/include/libavutil/frame.h \
  /usr/local/include/libavutil/buffer.h \
  /usr/local/include/libavutil/dict.h \
  /usr/local/include/libavutil/samplefmt.h \
+ /usr/local/include/libavutil/log.h /usr/local/include/libavutil/pixfmt.h \
  /usr/local/include/libavutil/rational.h \
  /usr/local/include/libavcodec/version.h \
+ /usr/local/include/libavutil/version.h \
+ /usr/local/include/libswscale/swscale.h \
+ /usr/local/include/libswscale/version.h \
  /usr/local/include/libavutil/opt.h \
  /usr/local/include/libavutil/imgutils.h \
  /usr/local/include/libavutil/pixdesc.h \
@@ -547,7 +547,9 @@ h264_decoder.o: h264_decoder.cc /usr/include/stdc-predef.h \
 
 h264_decoder.hh:
 
-/usr/local/include/libswscale/swscale.h:
+/usr/local/include/libavcodec/avcodec.h:
+
+/usr/local/include/libavutil/samplefmt.h:
 
 /usr/local/include/libavutil/avutil.h:
 
@@ -611,8 +613,6 @@ h264_decoder.hh:
 
 /usr/local/include/libavutil/error.h:
 
-/usr/local/include/libavutil/avutil.h:
-
 /usr/local/include/libavutil/rational.h:
 
 /usr/local/include/libavutil/mathematics.h:
@@ -623,19 +623,9 @@ h264_decoder.hh:
 
 /usr/local/include/libavutil/pixfmt.h:
 
-/usr/local/include/libavutil/log.h:
-
-/usr/local/include/libavutil/pixfmt.h:
-
-/usr/local/include/libswscale/version.h:
-
-/usr/local/include/libavutil/version.h:
-
-/usr/local/include/libavcodec/avcodec.h:
-
-/usr/local/include/libavutil/samplefmt.h:
-
 /usr/local/include/libavutil/attributes.h:
+
+/usr/local/include/libavutil/avutil.h:
 
 /usr/local/include/libavutil/buffer.h:
 
@@ -653,9 +643,19 @@ h264_decoder.hh:
 
 /usr/local/include/libavutil/samplefmt.h:
 
+/usr/local/include/libavutil/log.h:
+
+/usr/local/include/libavutil/pixfmt.h:
+
 /usr/local/include/libavutil/rational.h:
 
 /usr/local/include/libavcodec/version.h:
+
+/usr/local/include/libavutil/version.h:
+
+/usr/local/include/libswscale/swscale.h:
+
+/usr/local/include/libswscale/version.h:
 
 /usr/local/include/libavutil/opt.h:
 
