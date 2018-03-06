@@ -58,8 +58,7 @@ int main(int argc, char **argv)
             }
 
             outfile.write((char*)buffer2.get(), compressed_frame_size);
-            frame_count++;
-            
+            frame_count++;            
         }
     }
 

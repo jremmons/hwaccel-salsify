@@ -86,7 +86,7 @@ POST_INSTALL = :
 NORMAL_UNINSTALL = :
 PRE_UNINSTALL = :
 POST_UNINSTALL = :
-bin_PROGRAMS = test_coders$(EXEEXT) test_degrader$(EXEEXT)
+bin_PROGRAMS = test_coders$(EXEEXT) sender$(EXEEXT) receiver$(EXEEXT)
 subdir = src/libx264
 ACLOCAL_M4 = $(top_srcdir)/aclocal.m4
 am__aclocal_m4_deps = $(top_srcdir)/configure.ac
@@ -99,23 +99,29 @@ CONFIG_CLEAN_FILES =
 CONFIG_CLEAN_VPATH_FILES =
 am__installdirs = "$(DESTDIR)$(bindir)"
 PROGRAMS = $(bin_PROGRAMS)
+am_receiver_OBJECTS = receiver.$(OBJEXT) h264_decoder.$(OBJEXT)
+receiver_OBJECTS = $(am_receiver_OBJECTS)
+am__DEPENDENCIES_1 =
+receiver_DEPENDENCIES = $(am__DEPENDENCIES_1) $(am__DEPENDENCIES_1) \
+	$(am__DEPENDENCIES_1) $(am__DEPENDENCIES_1) \
+	$(am__DEPENDENCIES_1)
+receiver_LINK = $(CXXLD) $(AM_CXXFLAGS) $(CXXFLAGS) \
+	$(receiver_LDFLAGS) $(LDFLAGS) -o $@
+am_sender_OBJECTS = sender.$(OBJEXT) h264_encoder.$(OBJEXT)
+sender_OBJECTS = $(am_sender_OBJECTS)
+sender_DEPENDENCIES = $(am__DEPENDENCIES_1) $(am__DEPENDENCIES_1) \
+	$(am__DEPENDENCIES_1) $(am__DEPENDENCIES_1) \
+	$(am__DEPENDENCIES_1)
+sender_LINK = $(CXXLD) $(AM_CXXFLAGS) $(CXXFLAGS) $(sender_LDFLAGS) \
+	$(LDFLAGS) -o $@
 am_test_coders_OBJECTS = test_coders.$(OBJEXT) h264_encoder.$(OBJEXT) \
 	h264_decoder.$(OBJEXT)
 test_coders_OBJECTS = $(am_test_coders_OBJECTS)
-am__DEPENDENCIES_1 =
 test_coders_DEPENDENCIES = $(am__DEPENDENCIES_1) $(am__DEPENDENCIES_1) \
 	$(am__DEPENDENCIES_1) $(am__DEPENDENCIES_1) \
 	$(am__DEPENDENCIES_1)
 test_coders_LINK = $(CXXLD) $(AM_CXXFLAGS) $(CXXFLAGS) \
 	$(test_coders_LDFLAGS) $(LDFLAGS) -o $@
-am_test_degrader_OBJECTS = test_degrader.$(OBJEXT) \
-	h264_degrader.$(OBJEXT)
-test_degrader_OBJECTS = $(am_test_degrader_OBJECTS)
-test_degrader_DEPENDENCIES = $(am__DEPENDENCIES_1) \
-	$(am__DEPENDENCIES_1) $(am__DEPENDENCIES_1) \
-	$(am__DEPENDENCIES_1) $(am__DEPENDENCIES_1)
-test_degrader_LINK = $(CXXLD) $(AM_CXXFLAGS) $(CXXFLAGS) \
-	$(test_degrader_LDFLAGS) $(LDFLAGS) -o $@
 AM_V_P = $(am__v_P_@AM_V@)
 am__v_P_ = $(am__v_P_@AM_DEFAULT_V@)
 am__v_P_0 = false
@@ -145,8 +151,9 @@ AM_V_CXXLD = $(am__v_CXXLD_@AM_V@)
 am__v_CXXLD_ = $(am__v_CXXLD_@AM_DEFAULT_V@)
 am__v_CXXLD_0 = @echo "  CXXLD   " $@;
 am__v_CXXLD_1 = 
-SOURCES = $(test_coders_SOURCES) $(test_degrader_SOURCES)
-DIST_SOURCES = $(test_coders_SOURCES) $(test_degrader_SOURCES)
+SOURCES = $(receiver_SOURCES) $(sender_SOURCES) $(test_coders_SOURCES)
+DIST_SOURCES = $(receiver_SOURCES) $(sender_SOURCES) \
+	$(test_coders_SOURCES)
 am__can_run_installinfo = \
   case $$AM_UPDATE_INFO_DIR in \
     n|no|NO) false;; \
@@ -279,9 +286,12 @@ AM_CXXFLAGS = $(PICKY_CXXFLAGS)
 test_coders_SOURCES = test_coders.cc h264_encoder.cc h264_decoder.cc
 test_coders_LDADD = $(AVFORMAT_LIBS) $(AVCODEC_LIBS) $(AVUTIL_LIBS) $(AVFILTER_LIBS) $(AVDEVICE_LIBS)
 test_coders_LDFLAGS = -pthread -ldl -lm
-test_degrader_SOURCES = test_degrader.cc h264_degrader.cc 
-test_degrader_LDADD = $(AVFORMAT_LIBS) $(AVCODEC_LIBS) $(AVUTIL_LIBS) $(AVFILTER_LIBS) $(AVDEVICE_LIBS)
-test_degrader_LDFLAGS = -pthread -ldl -lm
+sender_SOURCES = sender.cc h264_encoder.cc
+sender_LDADD = $(AVFORMAT_LIBS) $(AVCODEC_LIBS) $(AVUTIL_LIBS) $(AVFILTER_LIBS) $(AVDEVICE_LIBS)
+sender_LDFLAGS = -pthread -ldl -lm
+receiver_SOURCES = receiver.cc h264_decoder.cc
+receiver_LDADD = $(AVFORMAT_LIBS) $(AVCODEC_LIBS) $(AVUTIL_LIBS) $(AVFILTER_LIBS) $(AVDEVICE_LIBS)
+receiver_LDFLAGS = -pthread -ldl -lm
 all: all-am
 
 .SUFFIXES:
@@ -358,13 +368,17 @@ uninstall-binPROGRAMS:
 clean-binPROGRAMS:
 	-test -z "$(bin_PROGRAMS)" || rm -f $(bin_PROGRAMS)
 
+receiver$(EXEEXT): $(receiver_OBJECTS) $(receiver_DEPENDENCIES) $(EXTRA_receiver_DEPENDENCIES) 
+	@rm -f receiver$(EXEEXT)
+	$(AM_V_CXXLD)$(receiver_LINK) $(receiver_OBJECTS) $(receiver_LDADD) $(LIBS)
+
+sender$(EXEEXT): $(sender_OBJECTS) $(sender_DEPENDENCIES) $(EXTRA_sender_DEPENDENCIES) 
+	@rm -f sender$(EXEEXT)
+	$(AM_V_CXXLD)$(sender_LINK) $(sender_OBJECTS) $(sender_LDADD) $(LIBS)
+
 test_coders$(EXEEXT): $(test_coders_OBJECTS) $(test_coders_DEPENDENCIES) $(EXTRA_test_coders_DEPENDENCIES) 
 	@rm -f test_coders$(EXEEXT)
 	$(AM_V_CXXLD)$(test_coders_LINK) $(test_coders_OBJECTS) $(test_coders_LDADD) $(LIBS)
-
-test_degrader$(EXEEXT): $(test_degrader_OBJECTS) $(test_degrader_DEPENDENCIES) $(EXTRA_test_degrader_DEPENDENCIES) 
-	@rm -f test_degrader$(EXEEXT)
-	$(AM_V_CXXLD)$(test_degrader_LINK) $(test_degrader_OBJECTS) $(test_degrader_LDADD) $(LIBS)
 
 mostlyclean-compile:
 	-rm -f *.$(OBJEXT)
@@ -373,10 +387,10 @@ distclean-compile:
 	-rm -f *.tab.c
 
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/h264_decoder.Po@am__quote@
-@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/h264_degrader.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/h264_encoder.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/receiver.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/sender.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/test_coders.Po@am__quote@
-@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/test_degrader.Po@am__quote@
 
 .cc.o:
 @am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXXCOMPILE) -MT $@ -MD -MP -MF $(DEPDIR)/$*.Tpo -c -o $@ $<
