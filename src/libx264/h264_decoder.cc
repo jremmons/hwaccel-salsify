@@ -92,7 +92,6 @@ void H264_decoder::decode(uint8_t *input, size_t len, uint8_t *output){
     bool output_set = false;
 
     AVFrame *outputFrame = decoder_frame;
-    std::cout << "encoded_frame_size: " << len << "\n";
 
     // decode frame
     uint8_t *data = input;
