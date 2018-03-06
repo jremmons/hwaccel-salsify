@@ -34,28 +34,17 @@ int main(int argc, char **argv)
         return 0;
     }
     
-    std::shared_ptr<uint8_t[]> input_buffer(new uint8_t[frame_size]);
-    std::shared_ptr<uint8_t[]> output_buffer(new uint8_t[frame_size]);
-
-    // std::shared_ptr<uint8_t> y_buffer1(new uint8_t[frame_size/4]);
-    // std::shared_ptr<uint8_t> u_buffer1(new uint8_t[frame_size/8]);
-    // std::shared_ptr<uint8_t> v_buffer1(new uint8_t[frame_size/8]);
-    // std::shared_ptr<uint8_t> y_buffer2(new uint8_t[frame_size/4]);
-    // std::shared_ptr<uint8_t> u_buffer2(new uint8_t[frame_size/8]);
-    // std::shared_ptr<uint8_t> v_buffer2(new uint8_t[frame_size/8]);
-    
-    // uint8_t *yuv_input[] = {y_buffer1.get(), u_buffer1.get(), v_buffer1.get()};
-    // uint8_t *yuv_output[] = {y_buffer2.get(), u_buffer2.get(), v_buffer2.get()};
+    std::shared_ptr<uint8_t[]> buffer1(new uint8_t[frame_size]);
+    std::shared_ptr<uint8_t[]> buffer2(new uint8_t[frame_size]);
 
     H264_encoder encoder(width, height, quantizer);
-    H264_encoder decoder(width, height);
 
     size_t frame_count = 0;
     while(!infile.eof()){
-        infile.read((char*)input_buffer.get(), frame_size);
+        infile.read((char*)buffer1.get(), frame_size);
 
         // TODO: add code to encode the frame
-        size_t compressed_frame_size = encoder.encode(input_buffer, output_buffer);
+        size_t compressed_frame_size = encoder.encode(buffer1.get(), buffer2.get());
         
         { // scope the file object
             std::stringstream ss;
@@ -67,8 +56,10 @@ int main(int argc, char **argv)
                 std::cout << "Could not open file: " << input_filename << "\n";
                 return 0;
             }
-            outfile.write((char*)output_buffer.get(), compressed_frame_size);
+
+            outfile.write((char*)buffer2.get(), compressed_frame_size);
             frame_count++;
+            
         }
     }
 
