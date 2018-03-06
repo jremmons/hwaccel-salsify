@@ -1,0 +1,54 @@
+#pragma once
+//#ifndef __H264_DEGRADER_HH__
+//#define __H264_DEGRADER_HH__
+
+extern "C" {
+#include <libswscale/swscale.h>
+#include "libavcodec/avcodec.h"
+#include "libavutil/frame.h"
+}
+
+#include <mutex>
+
+class H264_degrader{
+public:    
+    AVFrame *encoder_frame;
+    AVFrame *decoder_frame;
+    std::mutex degrader_mutex;
+    
+    H264_degrader(size_t _width, size_t _height, size_t quantization);
+    ~H264_degrader();
+
+    void bgra2yuv420p(uint8_t* input, AVFrame* outputFrame, size_t width, size_t height);
+    void yuv420p2bgra(AVFrame* inputFrame, uint8_t* output, size_t width, size_t height);
+    
+    void degrade(AVFrame *inputFrame, AVFrame *outputFrame);
+
+private:
+    const AVCodecID codec_id = AV_CODEC_ID_H264;
+    const AVPixelFormat pix_fmt = AV_PIX_FMT_YUV420P;
+
+    const size_t width;
+    const size_t height;
+    const size_t quantization;
+    
+    std::unique_ptr<uint8_t[]> buffer;
+
+    size_t frame_count;
+
+    AVCodec *encoder_codec;
+    AVCodec *decoder_codec;
+
+    AVCodecContext *encoder_context;
+    AVCodecContext *decoder_context;
+
+    AVCodecParserContext *decoder_parser;
+    
+    AVPacket *encoder_packet;
+    AVPacket *decoder_packet;
+
+    SwsContext *bgra2yuv420p_context;
+    SwsContext *yuv420p2bgra_context;
+};
+
+//#endif
