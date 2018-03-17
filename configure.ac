@@ -33,7 +33,6 @@ PKG_CHECK_MODULES([AVDEVICE], [libavdevice])
 AC_CONFIG_FILES([Makefile
          third_party/Makefile
          src/Makefile
-         src/hw/Makefile
          src/libx264/Makefile
          src/util/Makefile
 	 ])

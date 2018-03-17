@@ -1,1 +1,1 @@
-SUBDIRS = util libx264 hw
+SUBDIRS = util libx264

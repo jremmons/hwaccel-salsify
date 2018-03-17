@@ -11,11 +11,12 @@ extern "C" {
 #include <mutex>
 
 class H264_encoder{
-public:    
+public:
     H264_encoder(size_t _width, size_t _height, size_t quantization);
     ~H264_encoder();
 
     size_t encode(uint8_t *input, uint8_t *output);
+    size_t q() const { return quantization; }
 
 private:
     const AVCodecID codec_id = AV_CODEC_ID_H264;
@@ -23,7 +24,7 @@ private:
 
     const size_t width;
     const size_t height;
-    const size_t quantization;    
+    const size_t quantization;
     size_t frame_count;
 
     AVCodec *encoder_codec;
