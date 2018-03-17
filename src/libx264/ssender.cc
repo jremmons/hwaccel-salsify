@@ -25,12 +25,12 @@ typedef vector<uint8_t> Frame;
 
 void usage()
 {
-  cerr << "sender <input.raw> <output.compressed> <output.raw> <trace>" << endl;
+  cerr << "sender <input.raw> <output.compressed> <trace>" << endl;
 }
 
 int main( int argc, char const * argv[] )
 {
-  if ( argc != 5 ) {
+  if ( argc != 4 ) {
     usage();
     return EXIT_FAILURE;
   }
@@ -38,8 +38,7 @@ int main( int argc, char const * argv[] )
   /* open the i/o streams */
   ifstream input_fin { argv[ 1 ] };
   ofstream fout { argv[ 2 ] };
-  ofstream fout_raw { argv[ 3 ] };
-  ifstream trace_fin { argv[ 4 ] };
+  ifstream trace_fin { argv[ 3 ] };
 
   /* create the raster buffer */
   Raster raster_buffer;
