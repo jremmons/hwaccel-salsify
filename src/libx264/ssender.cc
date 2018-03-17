@@ -67,17 +67,19 @@ int main( int argc, char const * argv[] )
   temp_frame.resize( frame_size );
   size_t temp_frame_size = 0;
 
-  uint16_t winner = 0;
-  uint16_t prev_winner = 0;
+  size_t winner = 0;
+  size_t prev_winner = 0;
 
   while ( not input_fin.eof() ) {
     trace_fin >> winner;
 
+    size_t winner_q = encoders[ winner ]->q();
     /* read and encode the raster with two different qualities */
     input_fin.read( reinterpret_cast<char *>( raster_buffer.data() ), frame_size );
     out_frame_sizes[ 0 ] = encoders[ 0 ]->encode( raster_buffer.data(), frame_buffer[ 0 ].data() );
     out_frame_sizes[ 1 ] = encoders[ 1 ]->encode( raster_buffer.data(), frame_buffer[ 1 ].data() );
     fout.write( reinterpret_cast<char *>( &out_frame_sizes[ winner ] ), sizeof( out_frame_sizes[ winner ] ) );
+    fout.write( reinterpret_cast<char *>( &winner_q ), sizeof( winner_q ) );
     fout.write( reinterpret_cast<char *>( frame_buffer[ winner ].data() ), out_frame_sizes[ winner ] );
 
     if ( not winning_raster.initialized() ) {
